@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Retail Sales Performance Dashboard | Power BI, SQL, Excel, DAX</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eff6ff',
+              100: '#dbeafe',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+              800: '#1e40af',
+              900: '#1e293b',
+              950: '#0f172a'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+    body { font-family: 'Inter', sans-serif; }
+    .glass-card {
+      background: rgba(255, 255, 255, 0.98);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(226, 232, 240, 0.9);
+    }
+    .dark .glass-card {
+      background: rgba(30, 41, 59, 0.9);
+      border: 1px solid rgba(51, 65, 85, 0.9);
+    }
+  </style>
+</head>
+<body class="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 min-h-screen transition-colors duration-200">
+
+  <!-- Top Header Navigation -->
+  <header class="sticky top-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur border-b border-slate-200 dark:border-slate-800 px-6 py-4 shadow-sm">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <div class="p-2.5 bg-blue-600 rounded-xl text-white shadow-lg shadow-blue-500/20">
+          <i data-lucide="bar-chart-3" class="w-6 h-6"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-xl font-bold tracking-tight text-slate-900 dark:text-white">Retail Sales Performance Dashboard</h1>
+            <span class="px-2.5 py-0.5 text-xs font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-300 rounded-full">Live Interactive</span>
+          </div>
+          <p class="text-xs text-slate-500 dark:text-slate-400">Power BI Tabular Model • SQL Warehouse ETL • Advanced DAX • MS Excel Power Query</p>
+        </div>
+      </div>
+
+      <!-- Controls: Global Slicers & Reset -->
+      <div class="flex flex-wrap items-center gap-2.5">
+        <!-- Year Slicer -->
+        <div class="flex items-center gap-1.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg px-2 py-1 shadow-sm">
+          <i data-lucide="calendar" class="w-3.5 h-3.5 text-slate-400"></i>
+          <select id="filterYear" class="text-xs font-medium bg-transparent focus:outline-none cursor-pointer">
+            <option value="ALL">All Years (2023 - 2025)</option>
+            <option value="2025">FY 2025</option>
+            <option value="2024">FY 2024</option>
+            <option value="2023">FY 2023</option>
+          </select>
+        </div>
+
+        <!-- Category Slicer -->
+        <div class="flex items-center gap-1.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg px-2 py-1 shadow-sm">
+          <i data-lucide="layers" class="w-3.5 h-3.5 text-slate-400"></i>
+          <select id="filterCategory" class="text-xs font-medium bg-transparent focus:outline-none cursor-pointer">
+            <option value="ALL">All Categories</option>
+            <option value="Technology">Technology</option>
+            <option value="Furniture">Furniture</option>
+            <option value="Home & Kitchen">Home & Kitchen</option>
+            <option value="Apparel & Footwear">Apparel & Footwear</option>
+            <option value="Office Supplies">Office Supplies</option>
+          </select>
+        </div>
+
+        <!-- Region Slicer -->
+        <div class="flex items-center gap-1.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg px-2 py-1 shadow-sm">
+          <i data-lucide="map-pin" class="w-3.5 h-3.5 text-slate-400"></i>
+          <select id="filterRegion" class="text-xs font-medium bg-transparent focus:outline-none cursor-pointer">
+            <option value="ALL">All Regions</option>
+            <option value="West">West Region</option>
+            <option value="East">East Region</option>
+            <option value="Central">Central Region</option>
+            <option value="South">South Region</option>
+          </select>
+        </div>
+
+        <!-- Reset Button -->
+        <button id="btnResetFilters" title="Reset all slicers" class="px-3 py-1.5 text-xs font-medium text-slate-700 dark:text-slate-300 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 rounded-lg transition-colors flex items-center gap-1.5 shadow-sm">
+          <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+          Reset
+        </button>
+
+        <!-- Theme Toggle -->
+        <button id="themeToggle" title="Toggle Dark/Light Mode" class="p-2 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white bg-slate-100 dark:bg-slate-800 rounded-lg transition-colors">
+          <i data-lucide="moon" class="w-4 h-4 hidden dark:block"></i>
+          <i data-lucide="sun" class="w-4 h-4 block dark:hidden"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="max-w-7xl mx-auto px-6 py-8 space-y-8">
+
+    <!-- Active Filter Notice Banner -->
+    <div id="filterBanner" class="hidden p-3 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-xl text-xs flex items-center justify-between">
+      <div class="flex items-center gap-2 text-blue-700 dark:text-blue-300">
+        <i data-lucide="filter" class="w-4 h-4 shrink-0"></i>
+        <span>Active Filters: <strong id="filterTags" class="font-semibold">None</strong></span>
+      </div>
+      <button id="clearFiltersBtn" class="text-blue-600 dark:text-blue-400 hover:underline font-semibold text-xs">Clear All</button>
+    </div>
+
+    <!-- KPI Metrics Row -->
+    <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
+      
+      <!-- KPI 1: Revenue -->
+      <div class="glass-card rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow">
+        <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-2">
+          <span class="text-xs font-semibold uppercase tracking-wider">Total Net Revenue</span>
+          <div class="p-1.5 bg-blue-50 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 rounded-lg">
+            <i data-lucide="dollar-sign" class="w-4 h-4"></i>
+          </div>
+        </div>
+        <div id="kpiRevenue" class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">$15.33M</div>
+        <div id="kpiRevenueSub" class="mt-2 flex items-center text-xs font-medium text-emerald-600 dark:text-emerald-400">
+          <i data-lucide="trending-up" class="w-3.5 h-3.5 mr-1"></i>
+          <span>▲ +16.9% YoY Growth</span>
+        </div>
+      </div>
+
+      <!-- KPI 2: Profit -->
+      <div class="glass-card rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow">
+        <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-2">
+          <span class="text-xs font-semibold uppercase tracking-wider">Total Net Profit</span>
+          <div class="p-1.5 bg-emerald-50 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 rounded-lg">
+            <i data-lucide="pie-chart" class="w-4 h-4"></i>
+          </div>
+        </div>
+        <div id="kpiProfit" class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">$6.00M</div>
+        <div id="kpiProfitSub" class="mt-2 flex items-center text-xs font-medium text-emerald-600 dark:text-emerald-400">
+          <i data-lucide="trending-up" class="w-3.5 h-3.5 mr-1"></i>
+          <span>▲ +17.2% YoY Profit</span>
+        </div>
+      </div>
+
+      <!-- KPI 3: Margin -->
+      <div class="glass-card rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow">
+        <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-2">
+          <span class="text-xs font-semibold uppercase tracking-wider">Profit Margin %</span>
+          <div class="p-1.5 bg-purple-50 dark:bg-purple-900/40 text-purple-600 dark:text-purple-400 rounded-lg">
+            <i data-lucide="percent" class="w-4 h-4"></i>
+          </div>
+        </div>
+        <div id="kpiMargin" class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">39.11%</div>
+        <div class="mt-2 flex items-center text-xs font-medium text-slate-500 dark:text-slate-400">
+          <i data-lucide="target" class="w-3.5 h-3.5 mr-1"></i>
+          <span>Target: 35.0% Benchmark</span>
+        </div>
+      </div>
+
+      <!-- KPI 4: Orders -->
+      <div class="glass-card rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow">
+        <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-2">
+          <span class="text-xs font-semibold uppercase tracking-wider">Total Orders</span>
+          <div class="p-1.5 bg-amber-50 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400 rounded-lg">
+            <i data-lucide="shopping-bag" class="w-4 h-4"></i>
+          </div>
+        </div>
+        <div id="kpiOrders" class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">14,904</div>
+        <div class="mt-2 flex items-center text-xs font-medium text-slate-500 dark:text-slate-400">
+          <i data-lucide="boxes" class="w-3.5 h-3.5 mr-1"></i>
+          <span id="kpiUnits">32,894 Units Sold</span>
+        </div>
+      </div>
+
+      <!-- KPI 5: AOV -->
+      <div class="glass-card rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow">
+        <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-2">
+          <span class="text-xs font-semibold uppercase tracking-wider">Avg Order Value</span>
+          <div class="p-1.5 bg-cyan-50 dark:bg-cyan-900/40 text-cyan-600 dark:text-cyan-400 rounded-lg">
+            <i data-lucide="credit-card" class="w-4 h-4"></i>
+          </div>
+        </div>
+        <div id="kpiAOV" class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">$1,028.88</div>
+        <div class="mt-2 flex items-center text-xs font-medium text-emerald-600 dark:text-emerald-400">
+          <i data-lucide="arrow-up-right" class="w-3.5 h-3.5 mr-1"></i>
+          <span>+$12.40 vs Prior Period</span>
+        </div>
+      </div>
+
+      <!-- KPI 6: Return Rate -->
+      <div class="glass-card rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow">
+        <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-2">
+          <span class="text-xs font-semibold uppercase tracking-wider">Return Rate %</span>
+          <div class="p-1.5 bg-rose-50 dark:bg-rose-900/40 text-rose-600 dark:text-rose-400 rounded-lg">
+            <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+          </div>
+        </div>
+        <div id="kpiReturns" class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">6.56%</div>
+        <div class="mt-2 flex items-center text-xs font-medium text-slate-500 dark:text-slate-400">
+          <i data-lucide="alert-circle" class="w-3.5 h-3.5 mr-1"></i>
+          <span id="kpiReturnsSub">Audited Return Orders</span>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- Charts Row 1: Monthly Trend & Category Share -->
+    <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      
+      <!-- 2/3 Width: Monthly Revenue & Profit Trajectory -->
+      <div class="glass-card rounded-2xl p-6 shadow-sm lg:col-span-2">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+          <div>
+            <h2 class="text-base font-bold text-slate-900 dark:text-white">Monthly Revenue & Profit Trajectory</h2>
+            <p id="trendSubtitle" class="text-xs text-slate-500 dark:text-slate-400">Performance tracking across 36 consecutive months (2023 - 2025)</p>
+          </div>
+          <div class="flex items-center gap-3 text-xs">
+            <div class="flex items-center gap-1.5">
+              <span class="w-3 h-3 rounded-sm bg-blue-500 inline-block"></span>
+              <span class="text-slate-600 dark:text-slate-300">Net Revenue</span>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <span class="w-3 h-3 rounded-sm bg-emerald-500 inline-block"></span>
+              <span class="text-slate-600 dark:text-slate-300">Net Profit</span>
+            </div>
+          </div>
+        </div>
+        <div class="h-80 w-full">
+          <canvas id="monthlyTrendChart"></canvas>
+        </div>
+      </div>
+
+      <!-- 1/3 Width: Category Revenue Share -->
+      <div class="glass-card rounded-2xl p-6 shadow-sm">
+        <div class="mb-4">
+          <h2 class="text-base font-bold text-slate-900 dark:text-white">Category Revenue Share</h2>
+          <p class="text-xs text-slate-500 dark:text-slate-400">Contribution across five product segments</p>
+        </div>
+        <div class="h-64 w-full flex items-center justify-center">
+          <canvas id="categoryDonutChart"></canvas>
+        </div>
+        <div id="categoryLegend" class="mt-4 grid grid-cols-2 gap-2 text-xs">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+
+    </section>
+
+    <!-- Charts Row 2: Top Products & Regional Distribution -->
+    <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      
+      <!-- Top 10 Best Selling SKUs -->
+      <div class="glass-card rounded-2xl p-6 shadow-sm">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h2 class="text-base font-bold text-slate-900 dark:text-white">Top 10 Best-Selling Products by Revenue</h2>
+            <p class="text-xs text-slate-500 dark:text-slate-400">Ranked by total net sales contribution</p>
+          </div>
+          <span class="text-xs px-2.5 py-1 bg-slate-100 dark:bg-slate-800 rounded-md text-slate-600 dark:text-slate-300 font-medium">Top N = 10</span>
+        </div>
+        <div class="h-80 w-full">
+          <canvas id="topProductsChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Regional Performance Breakdown -->
+      <div class="glass-card rounded-2xl p-6 shadow-sm">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h2 class="text-base font-bold text-slate-900 dark:text-white">Regional Performance & Profitability</h2>
+            <p class="text-xs text-slate-500 dark:text-slate-400">Comparison across West, East, Central, and South regions</p>
+          </div>
+          <span class="text-xs px-2.5 py-1 bg-slate-100 dark:bg-slate-800 rounded-md text-slate-600 dark:text-slate-300 font-medium">4 Regions</span>
+        </div>
+        <div class="h-80 w-full">
+          <canvas id="regionalChart"></canvas>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- Interactive Data Table: Recent Sales Transactions -->
+    <section class="glass-card rounded-2xl p-6 shadow-sm">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
+        <div>
+          <div class="flex items-center gap-2">
+            <h2 class="text-base font-bold text-slate-900 dark:text-white">Sales Transactions Ledger</h2>
+            <span id="recordCountBadge" class="px-2 py-0.5 text-xs bg-slate-100 dark:bg-slate-800 rounded-full font-mono font-medium">250 Rows</span>
+          </div>
+          <p class="text-xs text-slate-500 dark:text-slate-400">Audited transactional orders from `fact_sales` dimensional model</p>
+        </div>
+        <div class="flex items-center gap-3">
+          <div class="relative">
+            <i data-lucide="search" class="w-4 h-4 absolute left-3 top-2.5 text-slate-400"></i>
+            <input type="text" id="tableSearch" placeholder="Search customer, order, SKU..." class="pl-9 pr-4 py-1.5 text-xs bg-slate-50 dark:bg-slate-800/80 border border-slate-300 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-64 text-slate-900 dark:text-white">
+          </div>
+          <button id="btnExportCSV" title="Export currently filtered view as CSV" class="px-3 py-1.5 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors flex items-center gap-1.5 shadow-sm cursor-pointer">
+            <i data-lucide="download" class="w-3.5 h-3.5"></i>
+            Export View (CSV)
+          </button>
+        </div>
+      </div>
+
+      <div class="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800">
+        <table class="w-full text-left text-xs">
+          <thead class="bg-slate-100/90 dark:bg-slate-800/90 text-slate-600 dark:text-slate-400 uppercase font-semibold">
+            <tr>
+              <th class="py-3 px-4">Order ID</th>
+              <th class="py-3 px-4">Order Date</th>
+              <th class="py-3 px-4">Customer</th>
+              <th class="py-3 px-4">Segment</th>
+              <th class="py-3 px-4">Region</th>
+              <th class="py-3 px-4">Product Name</th>
+              <th class="py-3 px-4">Category</th>
+              <th class="py-3 px-4 text-center">Qty</th>
+              <th class="py-3 px-4 text-right">Net Revenue</th>
+              <th class="py-3 px-4 text-right">Profit</th>
+              <th class="py-3 px-4 text-center">Status</th>
+            </tr>
+          </thead>
+          <tbody id="transactionsTableBody" class="divide-y divide-slate-100 dark:divide-slate-800 font-medium bg-white dark:bg-slate-900/50">
+            <!-- Dynamically populated rows -->
+          </tbody>
+        </table>
+      </div>
+      <div id="tableNoResults" class="hidden py-8 text-center text-xs text-slate-500">
+        No transactions match the selected filters or search query.
+      </div>
+    </section>
+
+    <!-- Architecture & Technology Showcase Cards -->
+    <section class="grid grid-cols-1 md:grid-cols-4 gap-4 pt-4 border-t border-slate-200 dark:border-slate-800">
+      
+      <div class="p-4 rounded-xl bg-blue-50/50 dark:bg-slate-800/40 border border-blue-100 dark:border-slate-800">
+        <div class="flex items-center gap-2 mb-1.5 text-blue-600 dark:text-blue-400 font-semibold text-xs">
+          <i data-lucide="database" class="w-4 h-4"></i>
+          <span>SQL Data Engineering</span>
+        </div>
+        <p class="text-xs text-slate-600 dark:text-slate-400">Staging ingestion, multi-date parsing, deduplication, and Star Schema creation in SQLite.</p>
+      </div>
+
+      <div class="p-4 rounded-xl bg-emerald-50/50 dark:bg-slate-800/40 border border-emerald-100 dark:border-slate-800">
+        <div class="flex items-center gap-2 mb-1.5 text-emerald-600 dark:text-emerald-400 font-semibold text-xs">
+          <i data-lucide="file-spreadsheet" class="w-4 h-4"></i>
+          <span>MS Excel & Power Query</span>
+        </div>
+        <p class="text-xs text-slate-600 dark:text-slate-400">M-code ETL scripts, Pivot Tables, XLOOKUP, dynamic arrays, and Executive Dashboard tab.</p>
+      </div>
+
+      <div class="p-4 rounded-xl bg-purple-50/50 dark:bg-slate-800/40 border border-purple-100 dark:border-slate-800">
+        <div class="flex items-center gap-2 mb-1.5 text-purple-600 dark:text-purple-400 font-semibold text-xs">
+          <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+          <span>Power BI Architecture</span>
+        </div>
+        <p class="text-xs text-slate-600 dark:text-slate-400">Star Schema modeling, single-direction filtering, active/inactive date relationships.</p>
+      </div>
+
+      <div class="p-4 rounded-xl bg-amber-50/50 dark:bg-slate-800/40 border border-amber-100 dark:border-slate-800">
+        <div class="flex items-center gap-2 mb-1.5 text-amber-600 dark:text-amber-400 font-semibold text-xs">
+          <i data-lucide="code" class="w-4 h-4"></i>
+          <span>Advanced DAX Measures</span>
+        </div>
+        <p class="text-xs text-slate-600 dark:text-slate-400">35+ measures: Time Intelligence, YoY Growth %, Ranking, RFM, and Dynamic SWITCH.</p>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- Load Data and Chart Logic -->
+  <script src="dashboard_data.js"></script>
+  <script>
+    // Initialize Lucide Icons
+    lucide.createIcons();
+
+    // Dark Mode Toggle
+    const themeBtn = document.getElementById('themeToggle');
+    themeBtn.addEventListener('click', () => {
+      document.documentElement.classList.toggle('dark');
+      applyCurrentFilter();
+    });
+
+    const isDarkMode = () => document.documentElement.classList.contains('dark');
+    const getGridColor = () => isDarkMode() ? 'rgba(51, 65, 85, 0.4)' : 'rgba(226, 232, 240, 0.6)';
+    const getTextColor = () => isDarkMode() ? '#94a3b8' : '#64748b';
+
+    // Reference to dataset
+    const rawData = DASHBOARD_DATA;
+
+    // Charts instances
+    let monthlyChart = null;
+    let categoryChart = null;
+    let topProductsChart = null;
+    let regionalChart = null;
+    let currentFilteredTransactions = [];
+
+    function formatCurrency(val) {
+      if (val === null || val === undefined || isNaN(val)) return '$0.00';
+      if (Math.abs(val) >= 1000000) {
+        return '$' + (val / 1000000).toFixed(2) + 'M';
+      }
+      return '$' + Number(val).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function initDashboard() {
+      setupFilters();
+      applyCurrentFilter();
+    }
+
+    function renderKPIs(kpis, year) {
+      document.getElementById('kpiRevenue').textContent = formatCurrency(kpis.total_revenue);
+      document.getElementById('kpiProfit').textContent = formatCurrency(kpis.total_profit);
+      document.getElementById('kpiMargin').textContent = (kpis.profit_margin_pct || 0).toFixed(2) + '%';
+      document.getElementById('kpiOrders').textContent = (kpis.total_orders || 0).toLocaleString();
+      document.getElementById('kpiUnits').textContent = (kpis.units_sold || 0).toLocaleString() + ' Units Sold';
+      document.getElementById('kpiAOV').textContent = '$' + (kpis.avg_order_value || 0).toFixed(2);
+      document.getElementById('kpiReturns').textContent = (kpis.return_rate_pct || 0).toFixed(2) + '%';
+
+      // Dynamic subtitle text
+      const revSub = document.getElementById('kpiRevenueSub');
+      const profitSub = document.getElementById('kpiProfitSub');
+      if (year === '2025') {
+        revSub.innerHTML = '<i data-lucide="trending-up" class="w-3.5 h-3.5 mr-1"></i><span>▲ +16.9% vs FY2024</span>';
+        profitSub.innerHTML = '<i data-lucide="trending-up" class="w-3.5 h-3.5 mr-1"></i><span>▲ +17.2% vs FY2024</span>';
+      } else if (year === '2024') {
+        revSub.innerHTML = '<i data-lucide="trending-up" class="w-3.5 h-3.5 mr-1"></i><span>▲ +17.8% vs FY2023</span>';
+        profitSub.innerHTML = '<i data-lucide="trending-up" class="w-3.5 h-3.5 mr-1"></i><span>▲ +17.3% vs FY2023</span>';
+      } else if (year === '2023') {
+        revSub.innerHTML = '<i data-lucide="activity" class="w-3.5 h-3.5 mr-1"></i><span>Baseline Year ($4.31M)</span>';
+        profitSub.innerHTML = '<i data-lucide="activity" class="w-3.5 h-3.5 mr-1"></i><span>Baseline Profit ($1.69M)</span>';
+      } else {
+        revSub.innerHTML = '<i data-lucide="trending-up" class="w-3.5 h-3.5 mr-1"></i><span>▲ +16.9% Compounded YoY</span>';
+        profitSub.innerHTML = '<i data-lucide="trending-up" class="w-3.5 h-3.5 mr-1"></i><span>▲ +17.2% Compounded Profit</span>';
+      }
+      lucide.createIcons();
+    }
+
+    function renderMonthlyChart(monthlyData) {
+      const ctx = document.getElementById('monthlyTrendChart').getContext('2d');
+      const labels = monthlyData.map(d => d.Year_Month);
+      const revData = monthlyData.map(d => d.Revenue);
+      const profitData = monthlyData.map(d => d.Profit);
+
+      if (monthlyChart) monthlyChart.destroy();
+
+      monthlyChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: 'Net Revenue',
+              data: revData,
+              backgroundColor: isDarkMode() ? 'rgba(59, 130, 246, 0.75)' : 'rgba(37, 99, 235, 0.8)',
+              borderRadius: 4,
+              order: 2
+            },
+            {
+              label: 'Net Profit',
+              data: profitData,
+              type: 'line',
+              borderColor: '#10b981',
+              backgroundColor: '#10b981',
+              borderWidth: 2.5,
+              tension: 0.3,
+              pointRadius: labels.length > 12 ? 2 : 4,
+              pointHoverRadius: 6,
+              order: 1
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: (ctx) => `${ctx.dataset.label}: ${formatCurrency(ctx.raw)}`
+              }
+            }
+          },
+          scales: {
+            x: {
+              grid: { display: false },
+              ticks: { maxTicksLimit: 12, font: { size: 10 }, color: getTextColor() }
+            },
+            y: {
+              grid: { color: getGridColor() },
+              ticks: {
+                callback: (val) => '$' + (val / 1000).toFixed(0) + 'K',
+                font: { size: 10 },
+                color: getTextColor()
+              }
+            }
+          }
+        }
+      });
+    }
+
+    function renderCategoryChart(catData, selectedCat) {
+      const ctx = document.getElementById('categoryDonutChart').getContext('2d');
+      const filtered = (selectedCat && selectedCat !== 'ALL')
+        ? catData.filter(d => d.Category === selectedCat)
+        : catData;
+
+      const labels = filtered.map(d => d.Category);
+      const values = filtered.map(d => d.Revenue);
+      const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ec4899', '#8b5cf6'];
+
+      if (categoryChart) categoryChart.destroy();
+
+      categoryChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: labels,
+          datasets: [{
+            data: values,
+            backgroundColor: colors,
+            borderWidth: 2,
+            borderColor: isDarkMode() ? '#1e293b' : '#ffffff',
+            hoverOffset: 6
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: (ctx) => {
+                  const total = values.reduce((a, b) => a + b, 0);
+                  const pct = total > 0 ? ((ctx.raw / total) * 100).toFixed(1) : 0;
+                  return `${ctx.label}: ${formatCurrency(ctx.raw)} (${pct}%)`;
+                }
+              }
+            }
+          },
+          cutout: '70%'
+        }
+      });
+
+      // Render legend
+      const legEl = document.getElementById('categoryLegend');
+      legEl.innerHTML = filtered.map((d, i) => `
+        <div class="flex items-center gap-1.5 truncate">
+          <span class="w-2.5 h-2.5 rounded-full inline-block shrink-0" style="background-color: ${colors[i % colors.length]}"></span>
+          <span class="text-slate-600 dark:text-slate-300 truncate" title="${d.Category}">${d.Category}</span>
+        </div>
+      `).join('');
+    }
+
+    function renderTopProductsChart(prodData, selectedCat) {
+      const ctx = document.getElementById('topProductsChart').getContext('2d');
+      const filtered = (selectedCat && selectedCat !== 'ALL') 
+        ? prodData.filter(p => p.Category === selectedCat)
+        : prodData;
+
+      const top10 = filtered.slice(0, 10);
+      const labels = top10.map(d => d.Product_Name.length > 24 ? d.Product_Name.substring(0, 24) + '...' : d.Product_Name);
+      const values = top10.map(d => d.Revenue);
+
+      if (topProductsChart) topProductsChart.destroy();
+
+      topProductsChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            data: values,
+            backgroundColor: isDarkMode() ? 'rgba(59, 130, 246, 0.85)' : 'rgba(37, 99, 235, 0.85)',
+            borderRadius: 6
+          }]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: (ctx) => `Revenue: ${formatCurrency(ctx.raw)}`
+              }
+            }
+          },
+          scales: {
+            x: {
+              ticks: {
+                callback: (val) => formatCurrency(val),
+                font: { size: 10 },
+                color: getTextColor()
+              },
+              grid: { color: getGridColor() }
+            },
+            y: {
+              grid: { display: false },
+              ticks: { font: { size: 10 }, color: getTextColor() }
+            }
+          }
+        }
+      });
+    }
+
+    function renderRegionalChart(regData, selectedReg) {
+      const ctx = document.getElementById('regionalChart').getContext('2d');
+      const filtered = (selectedReg && selectedReg !== 'ALL')
+        ? regData.filter(r => r.Region === selectedReg)
+        : regData;
+
+      const labels = filtered.map(d => d.Region);
+      const revData = filtered.map(d => d.Revenue);
+      const profitData = filtered.map(d => d.Profit);
+
+      if (regionalChart) regionalChart.destroy();
+
+      regionalChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: 'Revenue',
+              data: revData,
+              backgroundColor: isDarkMode() ? 'rgba(59, 130, 246, 0.85)' : 'rgba(37, 99, 235, 0.85)',
+              borderRadius: 4
+            },
+            {
+              label: 'Profit',
+              data: profitData,
+              backgroundColor: isDarkMode() ? 'rgba(16, 185, 129, 0.85)' : 'rgba(5, 150, 105, 0.85)',
+              borderRadius: 4
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'top',
+              labels: { font: { size: 11 }, color: getTextColor() }
+            },
+            tooltip: {
+              callbacks: {
+                label: (ctx) => `${ctx.dataset.label}: ${formatCurrency(ctx.raw)}`
+              }
+            }
+          },
+          scales: {
+            x: { grid: { display: false }, ticks: { font: { size: 11 }, color: getTextColor() } },
+            y: {
+              ticks: {
+                callback: (val) => formatCurrency(val),
+                font: { size: 10 },
+                color: getTextColor()
+              },
+              grid: { color: getGridColor() }
+            }
+          }
+        }
+      });
+    }
+
+    function renderTable(transactions) {
+      const tbody = document.getElementById('transactionsTableBody');
+      const noResults = document.getElementById('tableNoResults');
+      const badge = document.getElementById('recordCountBadge');
+      
+      currentFilteredTransactions = transactions;
+      badge.textContent = `${transactions.length} Rows`;
+
+      if (transactions.length === 0) {
+        tbody.innerHTML = '';
+        noResults.classList.remove('hidden');
+        return;
+      }
+      noResults.classList.add('hidden');
+
+      tbody.innerHTML = transactions.map(t => {
+        const isReturned = t.status === 'Returned';
+        const badgeClass = isReturned 
+          ? 'bg-rose-100 text-rose-700 dark:bg-rose-900/50 dark:text-rose-300' 
+          : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300';
+        return `
+          <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors">
+            <td class="py-2.5 px-4 font-mono text-slate-500">${t.order_id}</td>
+            <td class="py-2.5 px-4 text-slate-600 dark:text-slate-300">${t.order_date}</td>
+            <td class="py-2.5 px-4 text-slate-800 dark:text-slate-100 font-semibold">${t.customer_name}</td>
+            <td class="py-2.5 px-4 text-slate-500">${t.segment}</td>
+            <td class="py-2.5 px-4 text-slate-500">${t.region}</td>
+            <td class="py-2.5 px-4 max-w-xs truncate text-slate-700 dark:text-slate-200" title="${t.product_name}">${t.product_name}</td>
+            <td class="py-2.5 px-4 text-slate-500">${t.category}</td>
+            <td class="py-2.5 px-4 text-center font-semibold">${t.quantity}</td>
+            <td class="py-2.5 px-4 text-right font-semibold text-slate-900 dark:text-white">$${Number(t.net_revenue).toFixed(2)}</td>
+            <td class="py-2.5 px-4 text-right font-semibold ${t.profit >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600'}">$${Number(t.profit).toFixed(2)}</td>
+            <td class="py-2.5 px-4 text-center">
+              <span class="px-2 py-0.5 rounded-full text-[11px] font-semibold ${badgeClass}">
+                ${t.status}
+              </span>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function applyCurrentFilter() {
+      const year = document.getElementById('filterYear').value;
+      const cat = document.getElementById('filterCategory').value;
+      const reg = document.getElementById('filterRegion').value;
+      const search = document.getElementById('tableSearch').value.toLowerCase().trim();
+
+      // Show/hide filter notice
+      const banner = document.getElementById('filterBanner');
+      const tagsEl = document.getElementById('filterTags');
+      const activeTags = [];
+      if (year !== 'ALL') activeTags.push(`Year: ${year}`);
+      if (cat !== 'ALL') activeTags.push(`Category: ${cat}`);
+      if (reg !== 'ALL') activeTags.push(`Region: ${reg}`);
+      if (search) activeTags.push(`Search: "${search}"`);
+
+      if (activeTags.length > 0) {
+        banner.classList.remove('hidden');
+        tagsEl.textContent = activeTags.join(' • ');
+      } else {
+        banner.classList.add('hidden');
+      }
+
+      // 1. Base year stats
+      const yearData = rawData.by_year[year] || rawData.by_year['ALL'];
+
+      // 2. Adjust KPIs if category or region is filtered
+      let kpis = Object.assign({}, yearData.kpis);
+      if (cat !== 'ALL') {
+        const catObj = yearData.category_breakdown.find(c => c.Category === cat);
+        if (catObj) {
+          kpis.total_revenue = catObj.Revenue;
+          kpis.total_profit = catObj.Profit;
+          kpis.profit_margin_pct = catObj.Margin_Pct;
+          kpis.total_orders = catObj.Orders;
+          kpis.units_sold = catObj.Units;
+          kpis.avg_order_value = catObj.Orders > 0 ? (catObj.Revenue / catObj.Orders) : 0;
+        }
+      } else if (reg !== 'ALL') {
+        const regObj = yearData.regional_performance.find(r => r.Region === reg);
+        if (regObj) {
+          kpis.total_revenue = regObj.Revenue;
+          kpis.total_profit = regObj.Profit;
+          kpis.profit_margin_pct = regObj.Margin_Pct;
+          kpis.total_orders = regObj.Orders;
+          kpis.avg_order_value = regObj.Orders > 0 ? (regObj.Revenue / regObj.Orders) : 0;
+        }
+      }
+
+      // Render KPIs
+      renderKPIs(kpis, year);
+
+      // Render Charts
+      renderMonthlyChart(yearData.monthly_trend);
+      renderCategoryChart(yearData.category_breakdown, cat);
+      renderTopProductsChart(yearData.top_products, cat);
+      renderRegionalChart(yearData.regional_performance, reg);
+
+      // Update subtitle
+      document.getElementById('trendSubtitle').textContent = (year === 'ALL')
+        ? 'Performance tracking across 36 consecutive months (2023 - 2025)'
+        : `Monthly trajectory for Fiscal Year ${year}`;
+
+      // Filter transactions table
+      let filteredTxns = rawData.transactions;
+      if (year !== 'ALL') filteredTxns = filteredTxns.filter(t => t.order_date.startsWith(year));
+      if (cat !== 'ALL') filteredTxns = filteredTxns.filter(t => t.category === cat);
+      if (reg !== 'ALL') filteredTxns = filteredTxns.filter(t => t.region === reg);
+      if (search) {
+        filteredTxns = filteredTxns.filter(t => 
+          t.customer_name.toLowerCase().includes(search) ||
+          t.order_id.toLowerCase().includes(search) ||
+          t.product_name.toLowerCase().includes(search) ||
+          t.category.toLowerCase().includes(search) ||
+          t.region.toLowerCase().includes(search)
+        );
+      }
+      renderTable(filteredTxns);
+    }
+
+    function setupFilters() {
+      const yearSelect = document.getElementById('filterYear');
+      const catSelect = document.getElementById('filterCategory');
+      const regSelect = document.getElementById('filterRegion');
+      const resetBtn = document.getElementById('btnResetFilters');
+      const clearBtn = document.getElementById('clearFiltersBtn');
+      const searchInput = document.getElementById('tableSearch');
+      const exportBtn = document.getElementById('btnExportCSV');
+
+      yearSelect.addEventListener('change', applyCurrentFilter);
+      catSelect.addEventListener('change', applyCurrentFilter);
+      regSelect.addEventListener('change', applyCurrentFilter);
+      searchInput.addEventListener('input', applyCurrentFilter);
+
+      function resetAll() {
+        yearSelect.value = 'ALL';
+        catSelect.value = 'ALL';
+        regSelect.value = 'ALL';
+        searchInput.value = '';
+        applyCurrentFilter();
+      }
+
+      resetBtn.addEventListener('click', resetAll);
+      clearBtn.addEventListener('click', resetAll);
+
+      // Client-side CSV export of current filtered table rows
+      exportBtn.addEventListener('click', () => {
+        if (!currentFilteredTransactions || currentFilteredTransactions.length === 0) {
+          alert('No transactions available to export in current view.');
+          return;
+        }
+
+        const headers = ["Order_ID", "Order_Date", "Customer_Name", "Segment", "Region", "Product_Name", "Category", "Quantity", "Net_Revenue", "Profit", "Status"];
+        const rows = currentFilteredTransactions.map(t => [
+          `"${t.order_id}"`,
+          `"${t.order_date}"`,
+          `"${t.customer_name}"`,
+          `"${t.segment}"`,
+          `"${t.region}"`,
+          `"${t.product_name.replace(/"/g, '""')}"`,
+          `"${t.category}"`,
+          t.quantity,
+          t.net_revenue,
+          t.profit,
+          `"${t.status}"`
+        ]);
+
+        const csvContent = "data:text/csv;charset=utf-8," + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", `retail_sales_export_${Date.now()}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      });
+    }
+
+    window.addEventListener('DOMContentLoaded', initDashboard);
+  </script>
+</body>
+</html>
