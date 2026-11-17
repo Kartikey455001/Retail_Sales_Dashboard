@@ -1,0 +1,287 @@
+/* ============================================================================
+   POWER BI DAX MEASURES LIBRARY
+   Project: E-Commerce Retail Sales Performance Analytics
+   File: DAX_Measures.dax
+   Author: Retail BI & Analytics Team
+   Format: Tabular Model / Power BI Desktop DAX Measures
+   ============================================================================ */
+
+-- ============================================================================
+-- 1. CORE FINANCIAL MEASURES
+-- Display Folder: 01. Core Financials
+-- ============================================================================
+
+-- Total Gross Revenue (Before discounts)
+Total Gross Revenue = 
+SUM(fact_sales[Gross_Revenue])
+
+-- Total Discounts Given
+Total Discounts = 
+SUM(fact_sales[Discount_Amount])
+
+-- Total Net Revenue (Core Top-Line Metric)
+Total Net Revenue = 
+SUM(fact_sales[Net_Revenue])
+
+-- Total Cost of Goods Sold (COGS) & Shipping
+Total Cost = 
+SUM(fact_sales[Total_Cost])
+
+-- Total Net Profit (Bottom-Line Metric)
+Total Profit = 
+[Total Net Revenue] - [Total Cost]
+
+-- Profit Margin Percentage
+Profit Margin % = 
+DIVIDE([Total Profit], [Total Net Revenue], 0)
+
+-- Total Shipping Cost Incurred
+Total Shipping Cost = 
+SUM(fact_sales[Shipping_Cost])
+
+
+-- ============================================================================
+-- 2. OPERATIONAL & VOLUME MEASURES
+-- Display Folder: 02. Volume & Operations
+-- ============================================================================
+
+-- Total Distinct Order Count
+Total Orders = 
+DISTINCTCOUNT(fact_sales[Order_ID])
+
+-- Total Physical Units Sold
+Total Units Sold = 
+SUM(fact_sales[Quantity])
+
+-- Average Order Value (AOV)
+Average Order Value = 
+DIVIDE([Total Net Revenue], [Total Orders], 0)
+
+-- Average Units per Order
+Units per Order = 
+DIVIDE([Total Units Sold], [Total Orders], 0)
+
+-- Average Delivery Duration (Days)
+Average Delivery Days = 
+AVERAGE(fact_sales[Delivery_Days])
+
+-- Total Returned Items Count
+Total Returns = 
+CALCULATE(
+    COUNTROWS(fact_sales),
+    fact_sales[Is_Returned] = 1
+)
+
+-- Return Rate % (Percentage of transactions returned)
+Return Rate % = 
+DIVIDE([Total Returns], COUNTROWS(fact_sales), 0)
+
+
+-- ============================================================================
+-- 3. TIME INTELLIGENCE MEASURES
+-- Display Folder: 03. Time Intelligence
+-- Requires relationship: fact_sales[Order_Date] -> dim_date[Full_Date]
+-- ============================================================================
+
+-- Revenue Year-to-Date (YTD)
+Revenue YTD = 
+TOTALYTD(
+    [Total Net Revenue],
+    dim_date[Full_Date]
+)
+
+-- Revenue Quarter-to-Date (QTD)
+Revenue QTD = 
+TOTALQTD(
+    [Total Net Revenue],
+    dim_date[Full_Date]
+)
+
+-- Revenue Month-to-Date (MTD)
+Revenue MTD = 
+TOTALMTD(
+    [Total Net Revenue],
+    dim_date[Full_Date]
+)
+
+-- Prior Year Revenue (Same Period Last Year - SPLY)
+Revenue PY = 
+CALCULATE(
+    [Total Net Revenue],
+    SAMEPERIODLASTYEAR(dim_date[Full_Date])
+)
+
+-- Year-over-Year (YoY) Revenue Growth ($ Variance)
+YoY Revenue Variance = 
+[Total Net Revenue] - [Revenue PY]
+
+-- Year-over-Year (YoY) Revenue Growth Percentage
+YoY Revenue Growth % = 
+DIVIDE([YoY Revenue Variance], [Revenue PY], 0)
+
+-- Prior Year Profit
+Profit PY = 
+CALCULATE(
+    [Total Profit],
+    SAMEPERIODLASTYEAR(dim_date[Full_Date])
+)
+
+-- Year-over-Year (YoY) Profit Growth Percentage
+YoY Profit Growth % = 
+DIVIDE([Total Profit] - [Profit PY], [Profit PY], 0)
+
+-- Prior Year Orders
+Orders PY = 
+CALCULATE(
+    [Total Orders],
+    SAMEPERIODLASTYEAR(dim_date[Full_Date])
+)
+
+-- Year-over-Year (YoY) Order Growth %
+YoY Order Growth % = 
+DIVIDE([Total Orders] - [Orders PY], [Orders PY], 0)
+
+-- 3-Month Rolling Average Revenue (Smoothing seasonal spikes)
+Rolling 3-Month Revenue = 
+AVERAGEX(
+    DATESINPERIOD(
+        dim_date[Full_Date],
+        LASTDATE(dim_date[Full_Date]),
+        -3,
+        MONTH
+    ),
+    [Total Net Revenue]
+)
+
+
+-- ============================================================================
+-- 4. PRODUCT & RANKING MEASURES
+-- Display Folder: 04. Product & Ranking
+-- ============================================================================
+
+-- Product Revenue Rank
+Product Revenue Rank = 
+IF(
+    ISINSCOPE(dim_products[Product_Name]),
+    RANKX(
+        ALLSELECTED(dim_products[Product_Name]),
+        [Total Net Revenue],
+        ,
+        DESC,
+        DENSE
+    ),
+    BLANK()
+)
+
+-- Product Profit Margin Rank
+Product Margin Rank = 
+IF(
+    ISINSCOPE(dim_products[Product_Name]),
+    RANKX(
+        ALLSELECTED(dim_products[Product_Name]),
+        [Profit Margin %],
+        ,
+        DESC,
+        DENSE
+    ),
+    BLANK()
+)
+
+-- Revenue Percentage Contribution of Selected Category
+Category % Contribution = 
+DIVIDE(
+    [Total Net Revenue],
+    CALCULATE([Total Net Revenue], ALLSELECTED(dim_products[Category])),
+    0
+)
+
+-- Overall Company Revenue (Ignoring filters for Pareto/Contribution)
+Total Company Revenue = 
+CALCULATE([Total Net Revenue], ALL(fact_sales))
+
+-- Share of Total Enterprise Revenue %
+Share of Total Enterprise Revenue % = 
+DIVIDE([Total Net Revenue], [Total Company Revenue], 0)
+
+
+-- ============================================================================
+-- 5. CUSTOMER & SEGMENTATION MEASURES
+-- Display Folder: 05. Customer Intelligence
+-- ============================================================================
+
+-- Total Unique Active Customers
+Total Customers = 
+DISTINCTCOUNT(fact_sales[Customer_ID])
+
+-- Revenue per Customer (Customer Lifetime Value proxy)
+Revenue per Customer = 
+DIVIDE([Total Net Revenue], [Total Customers], 0)
+
+-- Orders per Customer
+Orders per Customer = 
+DIVIDE([Total Orders], [Total Customers], 0)
+
+-- Repeat Customers Count (Customers with > 1 lifetime order)
+Repeat Customers Count = 
+COUNTROWS(
+    FILTER(
+        VALUES(dim_customers[Customer_ID]),
+        CALCULATE(DISTINCTCOUNT(fact_sales[Order_ID])) > 1
+    )
+)
+
+-- Repeat Customer Ratio %
+Repeat Customer Ratio % = 
+DIVIDE([Repeat Customers Count], [Total Customers], 0)
+
+
+-- ============================================================================
+-- 6. DYNAMIC SWITCH MEASURES (For Interactive Visual Metric Selectors)
+-- Display Folder: 06. Dynamic Slicers
+-- Setup requires disconnected table: Parameter_Metric[Metric_Name], Parameter_Metric[Metric_Order]
+-- ============================================================================
+
+-- Dynamic Selected Metric
+Selected Metric Value = 
+SWITCH(
+    SELECTEDVALUE('Parameter_Metric'[Metric_Name], "Revenue"),
+    "Revenue", [Total Net Revenue],
+    "Profit", [Total Profit],
+    "Orders", [Total Orders],
+    "Margin %", [Profit Margin %] * 100,
+    "AOV", [Average Order Value],
+    [Total Net Revenue]
+)
+
+-- Dynamic Metric Label
+Selected Metric Label = 
+SELECTEDVALUE('Parameter_Metric'[Metric_Name], "Revenue")
+
+
+-- ============================================================================
+-- 7. CONDITIONAL FORMATTING & KPI STATUS MEASURES
+-- Display Folder: 07. Formatting & Alerts
+-- ============================================================================
+
+-- Status Color Code for YoY Growth (Green for positive, Red for negative)
+KPI Color YoY Growth = 
+IF([YoY Revenue Growth %] >= 0, "#10B981", "#EF4444")
+
+-- Status Color Code for Profit Margin (Green >= 35%, Orange 20-35%, Red < 20%)
+KPI Color Margin = 
+SWITCH(
+    TRUE(),
+    [Profit Margin %] >= 0.35, "#10B981",
+    [Profit Margin %] >= 0.20, "#F59E0B",
+    "#EF4444"
+)
+
+-- KPI Header Subtitle Text with YoY Performance
+KPI Card Revenue Subtitle = 
+VAR Pct = [YoY Revenue Growth %]
+VAR Arrow = IF(Pct >= 0, "▲ +", "▼ ")
+RETURN
+CONCATENATE(
+    CONCATENATE(Arrow, FORMAT(Pct, "0.0%")),
+    " vs Prior Year"
+)

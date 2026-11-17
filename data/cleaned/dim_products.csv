@@ -1,0 +1,48 @@
+Product_ID,Product_Name,Category,Sub_Category,Standard_Cost,Standard_Price
+TEC-LAP-001,ThinkPad Carbon X1 Ultrabook,Technology,Laptops,950.0,1499.0
+TEC-LAP-002,MacBook Air 15-inch M3,Technology,Laptops,880.0,1299.0
+TEC-LAP-003,Dell XPS 13 Plus,Technology,Laptops,820.0,1199.0
+TEC-LAP-004,ASUS ROG Zephyrus G14 Gaming,Technology,Laptops,1100.0,1699.0
+TEC-AUD-001,Sony WH-1000XM5 Noise-Canceling,Technology,Audio,210.0,399.0
+TEC-AUD-002,Bose QuietComfort Ultra,Technology,Audio,230.0,429.0
+TEC-AUD-003,Apple AirPods Pro Gen 2,Technology,Audio,140.0,249.0
+TEC-AUD-004,JBL Charge 5 Bluetooth Speaker,Technology,Audio,85.0,179.0
+TEC-MON-001,LG 34-Inch Curved UltraWide Monitor,Technology,Monitors,320.0,549.0
+TEC-MON-002,Dell UltraSharp 27 4K PremierColor,Technology,Monitors,360.0,629.0
+TEC-MON-003,Samsung Odyssey G7 32 Curved,Technology,Monitors,410.0,699.0
+TEC-ACC-001,Logitech MX Master 3S Wireless Mouse,Technology,Accessories,45.0,99.0
+TEC-ACC-002,Keychron Q1 Pro Mechanical Keyboard,Technology,Accessories,110.0,199.0
+TEC-ACC-003,"Anker 737 Power Bank 24,000mAh",Technology,Accessories,65.0,149.0
+TEC-ACC-004,CalDigit TS4 Thunderbolt 4 Dock,Technology,Accessories,220.0,379.0
+FUR-CHR-001,Herman Miller Aeron Ergonomic Chair,Furniture,Chairs,750.0,1295.0
+FUR-CHR-002,Steelcase Gesture Task Chair,Furniture,Chairs,680.0,1180.0
+FUR-CHR-003,Ergohuman High-Back Executive Mesh,Furniture,Chairs,380.0,699.0
+FUR-CHR-004,Secretlab TITAN Evo Gaming Chair,Furniture,Chairs,310.0,549.0
+FUR-DSK-001,Jarvis Bamboo Standing Desk 60x30,Furniture,Desks,420.0,799.0
+FUR-DSK-002,Uplift V2 Commercial Sit-Stand Desk,Furniture,Desks,480.0,895.0
+FUR-DSK-003,Modern Minimalist Solid Oak Writing Desk,Furniture,Desks,290.0,580.0
+FUR-BKS-001,Mid-Century 5-Shelf Walnut Bookcase,Furniture,Bookcases,210.0,449.0
+FUR-BKS-002,Industrial Pipe & Reclaimed Wood Bookshelf,Furniture,Bookcases,160.0,349.0
+FUR-LGT-001,BenQ ScreenBar Halo LED Task Lamp,Furniture,Lighting,90.0,179.0
+FUR-LGT-002,Dyson Solarcycle Morph Task Light,Furniture,Lighting,360.0,649.0
+OFF-PPR-001,Hammermill Premium Multipurpose Paper Ream,Office Supplies,Paper,18.0,42.0
+OFF-PPR-002,Moleskine Classic Hardcover Notebook Pack,Office Supplies,Paper,22.0,55.0
+OFF-PEN-001,Pilot G2 Gel Pens 0.7mm Black (Dozen),Office Supplies,Pens & Writing,7.5,18.99
+OFF-PEN-002,Lamy 2000 Fiberglass Fountain Pen,Office Supplies,Pens & Writing,110.0,220.0
+OFF-STR-001,Heavy-Duty Stackable File Organizer Bins,Office Supplies,Storage,28.0,69.0
+OFF-STR-002,Fellowes Powershred 99Ci Cross-Cut Shredder,Office Supplies,Storage,130.0,279.0
+OFF-BND-001,Avery Heavy Duty 3-Ring Presentation Binders,Office Supplies,Binders,14.0,34.5
+HOM-KTC-001,Breville Barista Touch Espresso Machine,Home & Kitchen,Coffee & Tea,580.0,999.0
+HOM-KTC-002,Fellow Ode Gen 2 Brew Coffee Grinder,Home & Kitchen,Coffee & Tea,185.0,345.0
+HOM-KTC-003,Ninja Foodi 10-in-1 DualZone Air Fryer,Home & Kitchen,Appliances,115.0,229.0
+HOM-KTC-004,Vitamix Explorian Series 5200 Blender,Home & Kitchen,Appliances,240.0,449.0
+HOM-KTC-005,Le Creuset Enameled Cast Iron Round Dutch Oven,Home & Kitchen,Cookware,220.0,420.0
+HOM-CLN-001,Roborock S8 Pro Ultra Robot Vacuum & Mop,Home & Kitchen,Cleaning,720.0,1199.0
+HOM-CLN-002,Dyson V15 Detect Cordless Vacuum,Home & Kitchen,Cleaning,430.0,749.0
+APP-FOW-001,Nike Air Zoom Pegasus 41 Running Shoes,Apparel & Footwear,Footwear,65.0,140.0
+APP-FOW-002,Hoka Clifton 9 Cushioned Road Running Shoes,Apparel & Footwear,Footwear,75.0,155.0
+APP-FOW-003,Red Wing Heritage Iron Ranger Leather Boots,Apparel & Footwear,Footwear,170.0,349.0
+APP-OUT-001,Arc'teryx Atom Heavyweight Hooded Jacket,Apparel & Footwear,Outerwear,160.0,350.0
+APP-OUT-002,Patagonia Down Sweater Puffer Vest,Apparel & Footwear,Outerwear,95.0,229.0
+APP-ACT-001,Lululemon Metal Vent Tech Athletic Shirt,Apparel & Footwear,Activewear,30.0,78.0
+APP-ACT-002,Vuori Kore Shorts All-Weather 7-inch,Apparel & Footwear,Activewear,28.0,68.0
